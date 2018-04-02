@@ -6,6 +6,8 @@ var path = require('path');
 var yargs = require('yargs');
 var obj2gltf = require('../lib/obj2gltf');
 
+var createORMTexture = require('../lib/createORMTexture')
+
 var defaultValue = Cesium.defaultValue;
 var defined = Cesium.defined;
 
@@ -85,6 +87,21 @@ var argv = yargs
             type : 'string',
             normalize : true
         },
+        metallicGreyscaleTexture : {
+            describe : 'Path to the metallic texture that should override textures in the .mtl file, this should be a greyscale texture. Intended for models with a single material',
+            type : 'string',
+            normalize : true
+        },
+        roughnessGreyscaleTexture : {
+            describe : 'Path to the roughness texture that should override textures in the .mtl file, this should be a greyscale texture. Intended for models with a single material',
+            type : 'string',
+            normalize : true
+        },
+        occlusionGreyscaleTexture : {
+            describe : 'Path to the occlusion texture that should override textures in the .mtl file, this should be a greyscale texture. Intended for models with a single material',
+            type : 'string',
+            normalize : true
+        },
         specularGlossinessTexture : {
             describe : 'Path to the specular-glossiness texture that should override textures in the .mtl file, where specular color is stored in the red, green, and blue channels and specular glossiness is stored in the alpha channel. The model will be saved with a material using the KHR_materials_pbrSpecularGlossiness extension.',
             type : 'string',
@@ -135,6 +152,15 @@ var binary = argv.binary || path.extname(filename).toLowerCase() === '.glb';
 var extension = binary ? '.glb' : '.gltf';
 
 gltfPath = path.join(outputDirectory, name + extension);
+
+let metallicMapPath = argv.metallicGreyscaleTexture;
+let roughnessMapPath = argv.roughnessGreyscaleTexture;
+let occlusionMapPath = argv.occlusionGreyscaleTexture;
+let ORMTexture = createORMTexture(metallicMapPath, roughnessMapPath, occlusionMapPath, outputDirectory);
+
+if (defined(ORMTexture)){
+    argv.metallicRoughnessOcclusionTexture = ORMTexture;
+}
 
 var overridingTextures = {
     metallicRoughnessOcclusionTexture : argv.metallicRoughnessOcclusionTexture,
